@@ -18,9 +18,11 @@ app.post("/pdf", async (req, res) => {
       return res.status(400).send("Missing HTML");
     }
 
-    const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"]
-    });
+const browser = await puppeteer.launch({
+  headless: "new",
+  executablePath: process.env.CHROME_PATH || "/usr/bin/chromium",
+  args: ["--no-sandbox", "--disable-setuid-sandbox"]
+});
 
     const page = await browser.newPage();
 
