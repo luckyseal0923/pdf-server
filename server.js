@@ -10,19 +10,20 @@ app.use(express.json({ limit: "20mb" }));
 ========================= */
 
 app.post("/pdf", async (req, res) => {
-  try {
+  let browser;
 
+  try {
     const { html, fileName } = req.body;
 
     if (!html) {
       return res.status(400).send("Missing HTML");
     }
 
-const browser = await puppeteer.launch({
-  headless: "new",
-  executablePath: process.env.CHROME_PATH || "/usr/bin/chromium",
-  args: ["--no-sandbox", "--disable-setuid-sandbox"]
-});
+    browser = await puppeteer.launch({
+      headless: "new",
+      executablePath: process.env.CHROME_PATH || "/usr/bin/chromium",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    });
 
     const page = await browser.newPage();
 
@@ -36,20 +37,21 @@ const browser = await puppeteer.launch({
       printBackground: true
     });
 
-    await browser.close();
-
     res.set({
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename=${fileName || "report.pdf"}`
+      "Content-Disposition": `attachment; filename="${fileName || "report.pdf"}"`
     });
 
     res.send(pdf);
 
   } catch (err) {
-
-    console.error(err);
+    console.error("PDF generation failed:", err);
     res.status(500).send("PDF generation failed");
 
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 });
 
